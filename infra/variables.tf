@@ -18,3 +18,7 @@ variable "private_subnet_cidr" {
 variable "public_subnet_cidr" {
   description = "The CIDR block of the subnet"
 }
+
+variable "front_image" {
+  description = "The image used by front instance"
+}
