@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login/Register Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .toggle-link {
+            text-align: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h1>Login/Register</h1>
+<div id="loginFormContainer">
+    <form id="loginForm" onsubmit="submitForm(event, 'loginForm')">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <input type="submit" value="Login">
+    </form>
+    <div class="toggle-link" onclick="toggleForm('register')">Register</div>
+</div>
+
+<div id="registerFormContainer" style="display: none;">
+    <form id="registerForm" onsubmit="submitForm(event, 'registerForm')">
+        <label for="newUsername">Username:</label>
+        <input type="text" id="newUsername" name="newUsername" required>
+
+        <label for="newPassword">Password:</label>
+        <input type="password" id="newPassword" name="newPassword" required>
+
+        <input type="submit" value="Register">
+    </form>
+    <div class="toggle-link" onclick="toggleForm('login')">Login</div>
+</div>
+
+<script>
+        function toggleForm(formToShow) {
+            const loginFormContainer = document.getElementById('loginFormContainer');
+            const registerFormContainer = document.getElementById('registerFormContainer');
+
+            if (formToShow === 'register') {
+                loginFormContainer.style.display = 'none';
+                registerFormContainer.style.display = 'block';
+            } else {
+                loginFormContainer.style.display = 'block';
+                registerFormContainer.style.display = 'none';
+            }
+        }
+
+        function submitForm(event, formId) {
+            event.preventDefault();
+            const form = document.getElementById(formId);
+            const formData = new FormData(form);
+
+            // You can perform additional validation here before sending the request.
+
+            fetch('https://backend-6ibezxemha-lm.a.run.app/backend', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // Handle the response from the server.
+                // For example, you might redirect to a different page upon successful login or registration.
+                console.log('Response:', response);
+            })
+            .catch(error => {
+                // Handle any errors that occurred during the fetch request.
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

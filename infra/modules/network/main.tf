@@ -17,7 +17,34 @@ resource "google_compute_subnetwork" "public_subnet" {
   network       = google_compute_network.vpc_network.id
 }
 
+resource "google_compute_firewall" "inbound-ip-ssh" {
+  name    = "allow-incoming-ssh-from-iap"
+  project = var.project
+  network = google_compute_network.vpc_network.id
 
+  direction = "INGRESS"
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+  source_ranges = [
+    "35.235.240.0/20"
+  ]
+}
+
+resource "google_compute_global_address" "private_ip_alloc" {
+  name          = "private-ip-alloc"
+  address_type  = "INTERNAL"
+  purpose       = "VPC_PEERING"
+  prefix_length = 16
+  network       = google_compute_network.vpc_network.id
+}
+
+resource "google_service_networking_connection" "vpc_to_sql" {
+  network                 = google_compute_network.vpc_network.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
+}
 
 #resource "aws_internet_gateway" "internet-gw" {
 #  vpc_id = aws_vpc.vpc1.id

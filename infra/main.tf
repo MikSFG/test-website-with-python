@@ -8,25 +8,48 @@ module "network" {
   private_subnet_cidr = var.private_subnet_cidr
 }
 
-resource "google_compute_instance" "front_instance" {
-  machine_type = "e2-micro-"
-  name         = "front-instance"
-  zone         = var.availability_zones[0]
-  network_interface {
-    network = module.network.vpc_id
-    subnetwork = module.network.public-subnet-id
-    access_config {
+resource "google_cloud_run_v2_service" "cloud_run_frontend" {
+  name     = "frontend"
+  location = var.region
+  ingress = "INGRESS_TRAFFIC_ALL"
+
+  template {
+    containers {
+      image = var.frontend_image
     }
-  }
-  boot_disk {
-    initialize_params {
-      image = var.front_image
-    }
-  }
-  metadata = {
-    role = "front"
   }
 }
+
+resource "google_cloud_run_service_iam_binding" "cloud_run_frontend_iam" {
+  service  = google_cloud_run_v2_service.cloud_run_frontend.name
+  location = google_cloud_run_v2_service.cloud_run_frontend.location
+  role     = "roles/run.invoker"
+  members = [
+    "allUsers"
+  ]
+}
+
+resource "google_cloud_run_v2_service" "cloud_run_backend" {
+  name     = "backend"
+  location = var.region
+  ingress = "INGRESS_TRAFFIC_ALL"
+
+  template {
+    containers {
+      image = var.backend_image
+    }
+  }
+}
+
+resource "google_cloud_run_service_iam_binding" "cloud_run_backend_iam" {
+  service  = google_cloud_run_v2_service.cloud_run_backend.name
+  location = google_cloud_run_v2_service.cloud_run_backend.location
+  role     = "roles/run.invoker"
+  members = [
+    "allUsers"
+  ]
+}
+
 
 resource "google_sql_database" "sql_db" {
   name     = "website-db"
@@ -40,11 +63,13 @@ resource "google_sql_database_instance" "sql_db_instance" {
   region           = var.region
   project          = var.project
   database_version = "MYSQL_8_0"
+  depends_on = [module.network.private_vpc_connection_id]
   settings {
     tier = "db-f1-micro"
     ip_configuration {
       ipv4_enabled    = false
       private_network = module.network.vpc_id
+      enable_private_path_for_google_cloud_services = true
     }
   }
   deletion_protection  = "false"

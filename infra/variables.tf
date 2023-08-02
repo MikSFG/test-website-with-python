@@ -19,6 +19,14 @@ variable "public_subnet_cidr" {
   description = "The CIDR block of the subnet"
 }
 
-variable "front_image" {
-  description = "The image used by front instance"
+variable "frontend_image" {
+  description = "The image used by frontend instance"
+}
+
+variable "backend_image" {
+  description = "The image used by backend instance"
+}
+
+variable "cos_image" {
+  description = "Container compatible image used by both instances"
 }
