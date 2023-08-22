@@ -8,6 +8,22 @@ module "network" {
   private_subnet_cidr = var.private_subnet_cidr
 }
 
+resource "google_project_service" "vpcaccess_api" {
+  project = var.project
+  service = "vpcaccess.googleapis.com"
+}
+
+resource "google_vpc_access_connector" "vpc_connector" {
+  name          = "vpc-connector"
+  project       = var.project
+  region        = var.region
+  network       = module.network.vpc_id
+  ip_cidr_range = "10.132.0.0/28"
+  depends_on = [
+    google_project_service.vpcaccess_api
+  ]
+}
+
 resource "google_cloud_run_v2_service" "cloud_run_frontend" {
   name     = "frontend"
   location = var.region
@@ -38,6 +54,12 @@ resource "google_cloud_run_v2_service" "cloud_run_backend" {
     containers {
       image = var.backend_image
     }
+    vpc_access {
+      # Use the VPC Connector
+      connector = google_vpc_access_connector.vpc_connector.id
+      # all egress from the service should go through the VPC Connector
+      egress = "ALL_TRAFFIC"
+    }
   }
 }
 
@@ -64,6 +86,9 @@ resource "google_sql_database_instance" "sql_db_instance" {
   project          = var.project
   database_version = "MYSQL_8_0"
   depends_on = [module.network.private_vpc_connection_id]
+#  provisioner "local-exec" {
+#    command = "PGPASSWORD=<password> psql -f schema.sql -p <port> -U <username> <databasename>"
+#  }
   settings {
     tier = "db-f1-micro"
     ip_configuration {

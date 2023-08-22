@@ -13,6 +13,9 @@ output "private_ip_alloc_id" {
 output "private_vpc_connection_id" {
   value = google_service_networking_connection.vpc_to_sql.id
 }
+output "private-subnet-name" {
+  value = google_compute_subnetwork.private_subnet.name
+}
 #output "net-inf1-id" {
 #  value = aws_network_interface.tf-net-inf1.id
 #}
